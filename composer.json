@@ -1,0 +1,20 @@
+{
+    "name": "alanvdb/csv",
+    "description": "A CSV stream handler implementing PSR-7 StreamInterface",
+    "type": "library",
+    "require": {
+        "psr/http-message": "^2.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "AlanVdb\\Csv\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "alanvdb",
+            "email": "alanvdb.coder@gmail.com"
+        }
+    ]
+}
