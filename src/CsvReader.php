@@ -6,8 +6,9 @@ use InvalidArgumentException;
 use RuntimeException;
 use ArrayAccess;
 use Iterator;
+use Countable;
 
-class CsvReader implements ArrayAccess, Iterator
+class CsvReader implements ArrayAccess, Iterator, Countable
 {
     private readonly string $filePath;
     private readonly string $delimiter;
@@ -16,6 +17,7 @@ class CsvReader implements ArrayAccess, Iterator
     private array $headers = [];
     private int $position = 0;
     private ?array $currentRow = null;
+    private int $totalRows = 0;
 
     public function __construct(string $filePath, string $delimiter = ',', bool $hasHeader = true)
     {
@@ -40,8 +42,24 @@ class CsvReader implements ArrayAccess, Iterator
         }
 
         $this->handle = fopen($this->filePath, 'r');
-        if ($this->hasHeader && $this->handle !== false) {
+        if ($this->handle === false) {
+            throw new RuntimeException("Unable to open file: $this->filePath");
+        }
+        
+        if ($this->hasHeader) {
             $this->headers = fgetcsv($this->handle, 0, $this->delimiter) ?: [];
+        }
+
+        // Calculer le nombre total de lignes (en ignorant la première si elle contient des en-têtes)
+        $this->totalRows = $this->hasHeader ? 0 : -1;  // Si on a un en-tête, la première ligne n'est pas comptée.
+        while (fgets($this->handle)) {
+            $this->totalRows++;
+        }
+
+        // Rewind pour préparer à la lecture normale après comptage.
+        rewind($this->handle);
+        if ($this->hasHeader) {
+            fgetcsv($this->handle, 0, $this->delimiter); // Ignorer la première ligne des en-têtes
         }
     }
 
@@ -107,5 +125,11 @@ class CsvReader implements ArrayAccess, Iterator
     public function valid(): bool
     {
         return $this->currentRow !== null;
+    }
+
+    // Implémentation de l'interface Countable
+    public function count(): int
+    {
+        return $this->totalRows;
     }
 }
